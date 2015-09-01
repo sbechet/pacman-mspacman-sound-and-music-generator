@@ -1,0 +1,159 @@
+diff -ru pacman/debug.htm pacman-w-sound/debug.htm
+--- pacman/debug.htm	2014-05-04 16:06:18.000000000 +0200
++++ pacman-w-sound/debug.htm	2014-07-04 08:22:57.206956418 +0200
+@@ -40,6 +40,8 @@
+ 
+ <script src="src/inherit.js"></script>
+ <script src="src/random.js"></script>
++<script src="src/wildcardman.js"></script>
++<script src="src/wsg.js"></script>
+ <script src="src/game.js"></script>
+ <script src="src/direction.js"></script>
+ <script src="src/Map.js"></script>
+diff -ru pacman/src/executive.js pacman-w-sound/src/executive.js
+--- pacman/src/executive.js	2014-05-04 16:06:19.000000000 +0200
++++ pacman-w-sound/src/executive.js	2014-07-04 11:16:32.032159985 +0200
+@@ -121,6 +121,8 @@
+             var that = this;
+             window.addEventListener('focus', function() {that.start();});
+             window.addEventListener('blur', function() {that.stop();});
++            window.wcm = MusicsAndEffects;
++            window.wsg = getWsgOnWebAudio();
+             this.start();
+         },
+         start: function() {
+diff -ru pacman/src/fruit.js pacman-w-sound/src/fruit.js
+--- pacman/src/fruit.js	2014-05-04 16:06:19.000000000 +0200
++++ pacman-w-sound/src/fruit.js	2014-07-04 20:50:02.732774809 +0200
+@@ -51,6 +51,11 @@
+     },
+     testCollide: function() {
+         if (this.isPresent() && this.isCollide()) {
++            if (gameMode == GAME_PACMAN) {
++                addSeqEffect("pac_C_eatfruit");
++            } else {
++                addSeqEffect("ms_C_eatfruit");
++            }            
+             addScore(this.getPoints());
+             this.reset();
+             this.scoreFramesLeft = this.scoreDuration*60;
+@@ -278,6 +283,7 @@
+         this.pixel.x += b.dx;
+         this.pixel.y += b.dy;
+         this.frame++;
++        addEffect("ms_F_fruitmove");
+     },
+ 
+     setNextPath: function() {
+diff -ru pacman/src/Map.js pacman-w-sound/src/Map.js
+--- pacman/src/Map.js	2014-05-04 16:06:19.000000000 +0200
++++ pacman-w-sound/src/Map.js	2014-07-04 14:58:53.488833240 +0200
+@@ -290,6 +290,24 @@
+     }
+ };
+ 
++Map.prototype.siren = function() {
++    var siren = [];
++    var index = 1;
++    if (gameMode == GAME_PACMAN) {
++        siren = ["pac_2_siren1","pac_3_siren2","pac_4_siren3","pac_5_siren4","pac_6_siren5"];
++    } else {
++        siren = ["ms_2_siren1","ms_3_siren2","ms_4_siren3","ms_5_siren4","ms_6_siren5"];
++    }
++    // TODO: Verify siren speed
++    //~ if (this.dotsEaten / this.numDots < 1/2) {
++        //~ index = 1;
++    //~ }
++    //~ if (this.dotsEaten / this.numDots < 3/4) {
++        //~ index = 2;
++    //~ }    
++    //addEffect(siren[index]);
++};
++
+ // get remaining dots left
+ Map.prototype.dotsLeft = function() {
+     return this.numDots - this.dotsEaten;
+@@ -297,6 +315,7 @@
+ 
+ // determine if all dots have been eaten
+ Map.prototype.allDotsEaten = function() {
++    this.siren();
+     return this.dotsLeft() == 0;
+ };
+ 
+@@ -381,4 +400,9 @@
+     this.currentTiles[i] = ' ';
+     this.timeEaten[i] = vcr.getTime();
+     renderer.erasePellet(x,y);
++    if (gameMode == GAME_PACMAN) {
++        addEffect("pac_B_eatdot2"); // TODO: or B ?
++    } else {
++        addEffect("ms_B_eatdot"); // TODO: or B ?
++    }            
+ };
+diff -ru pacman/src/states.js pacman-w-sound/src/states.js
+--- pacman/src/states.js	2014-05-04 16:06:19.000000000 +0200
++++ pacman-w-sound/src/states.js	2014-07-04 14:48:40.268524118 +0200
+@@ -456,6 +456,11 @@
+             practiceMode = false;
+             turboMode = false;
+             newGameState.setStartLevel(1);
++            if (gameMode == GAME_PACMAN) {
++                addEffect("pac_1_credit");
++            } else {
++                addEffect("ms_1_credit");
++            }
+             exitTo(newGameState, 60);
+         });
+     menu.addTextButton("PLAY TURBO",
+@@ -463,6 +468,11 @@
+             practiceMode = false;
+             turboMode = true;
+             newGameState.setStartLevel(1);
++            if (gameMode == GAME_PACMAN) {
++                addEffect("pac_1_credit");
++            } else {
++                addEffect("ms_1_credit");
++            }
+             exitTo(newGameState, 60);
+         });
+     menu.addTextButton("PRACTICE",
+@@ -1166,6 +1176,11 @@
+             setScore(0);
+             setFruitFromGameMode();
+             readyNewState.init();
++            if (gameMode == GAME_PACMAN) {
++                addMusic("pac_start");
++            } else {
++                addMusic("ms_start");
++            }            
+         },
+         setStartLevel: function(i) {
+             startLevel = i;
+@@ -1313,6 +1328,24 @@
+                     continue;
+                 else // killed by ghost
+                     switchState(deadState);
++                if (ghosts[i].mode == GHOST_EATEN) {
++                    if (gameMode == GAME_PACMAN) {
++                        addNewSeqEffect("pac_D_eatghost");
++                        for (var i=0; i<5; i++) {   // TODO: Check reality?
++                            addSeqEffect("pac_8_eatghost2");
++                        }
++                    } else {
++                        addEffect("ms_D_eatghost");
++                    }
++                } else {
++                    if (gameMode == GAME_PACMAN) {
++                        addNewSeqEffect("pac_E_death");
++                        addSeqEffect("pac_F");
++                        addSeqEffect("pac_F");
++                    } else {
++                        addEffect("ms_E_death");
++                    }
++                }
+                 return true;
+             }
+         }
+Only in pacman-w-sound/src: wildcardman.js
+Only in pacman-w-sound/src: wsg.js
