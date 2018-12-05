@@ -5,7 +5,7 @@
 # High Level Music and Effect fully extracted for the first time
 # All work done by sbec in 2014
 # Version 20140714
- 
+
 class MusicsAndEffects(object):
     wavetable = [
             [-1,1,2,3,4,5,5,6,6,6,5,5,4,3,2,1,-1,-3,-4,-5,-6,-7,-7,-8,-8,-8,-7,-7,-6,-5,-4,-3],     # S = sinus or Synth Bass (smooth) to smooth tone
@@ -53,7 +53,7 @@ class MusicsAndEffects(object):
         'pac_E_death' :     [1, 24000,  -750,   6, 1, -1500, 28, 0, 15,-1],
         'pac_F' :           [0,     0,  6000,  12, 0,     0,  1, 0,  8, 0]
     }
- 
+
     # octave number 4 in real world
     octave = {
         'C-': 4*440/pow(2,9/12),
@@ -69,7 +69,7 @@ class MusicsAndEffects(object):
         'A#': 4*440*pow(2,1/12),
         'B-': 4*440*pow(2,2/12)
     }
- 
+
     # key : [ [ [wave, note, duration (1/60 s), volume, volEffect], ...] ...] ...
     musics = {
     'ms_act1' : [[
@@ -721,9 +721,8 @@ class MusicsAndEffects(object):
         [0, "C#8",  8, 15, 0],
     ]]
     }
- 
+
 if __name__ == '__main__':
     print(MusicsAndEffects.wavetable)
     print(MusicsAndEffects.effects)
     print(MusicsAndEffects.musics)
-
