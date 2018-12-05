@@ -247,7 +247,7 @@ class SoundWave(Wsg):
     def update(self):
         seq = Wsg.update(self, 4096)
         seq16 = [s * self.normalize for s in seq]  # normalize
-        seqb = array.array('h', seq16).tostring()  # then in bytes()
+        seqb = array.array('h', seq16).tobytes()  # then in bytes()
         self.wave_file.writeframes(seqb)
 
 
